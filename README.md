@@ -1,0 +1,1 @@
+# gbr-trade-signals-bot
