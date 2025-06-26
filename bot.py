@@ -1,21 +1,18 @@
+import os
 import threading
 import time
 import requests
-import os
 from flask import Flask
-from telegram import Bot
-from datetime import datetime
+from telegram import Bot, Update
+from telegram.ext import CommandHandler, Updater, CallbackContext
 
-app = Flask(__name__)
-
-TELEGRAM_TOKEN = "7976649472:AAFW5j66scpRAQKxrIakwarQ3WY-UCgrP2w"
-CHAT_ID = None  # jeśli potrzebujesz na sztywno, wstaw tutaj ID
-
-bot = Bot(token=TELEGRAM_TOKEN)
-
-# Lista coinów i interwałów do sprawdzania RSI
+TOKEN = "7976649472:AAFW5j66scpRAQKxrIakwarQ3WY-UCgrP2w"
 COINS = ["PEPEUSDT", "WTCUSDT", "FARTCOINUSDT", "HOMEUSDT", "DOGEUSDT", "ADAUSDT", "XRPUSDT", "SOLUSDT"]
 INTERVALS = ["5m", "1h"]
+
+bot = Bot(token=TOKEN)
+app = Flask(__name__)
+user_chat_ids = set()
 
 def get_rsi(symbol, interval):
     try:
@@ -41,35 +38,50 @@ def monitor():
                 rsi = get_rsi(coin, interval)
                 if rsi is None:
                     continue
-                message = None
-                if rsi >= 80:
-                    message = f"🔻 SHORT SIGNAL: {coin} RSI ({interval}) = {rsi}"
+                msg = None
+                if rsi >= 70:
+                    msg = f"🔻 SHORT SIGNAL: {coin} RSI ({interval}) = {rsi}"
                 elif rsi <= 20:
-                    message = f"🔺 LONG SIGNAL: {coin} RSI ({interval}) = {rsi}"
-                if message:
-                    try:
-                        bot.send_message(chat_id=CHAT_ID or "@yourchannel", text=message)
-                    except Exception as e:
-                        print(f"Error sending message: {e}")
+                    msg = f"🔺 LONG SIGNAL: {coin} RSI ({interval}) = {rsi}"
+                if msg:
+                    for chat_id in user_chat_ids:
+                        try:
+                            bot.send_message(chat_id=chat_id, text=msg)
+                        except Exception as e:
+                            print(f"Error: {e}")
         time.sleep(300)
 
-@app.route("/")
-def home():
-    return f"Bot is running. {datetime.utcnow()}"
-
-@app.route("/ping")
-def ping():
-    return f"pong {datetime.utcnow()}"
+def start(update: Update, context: CallbackContext):
+    chat_id = update.effective_chat.id
+    user_chat_ids.add(chat_id)
+    context.bot.send_message(chat_id=chat_id, text=f"✅ Bot aktywowany.
+Twój chat_id to: {chat_id}
+Otrzymasz sygnały RSI.")
 
 def keep_alive():
     while True:
         try:
-            requests.get("https://gbr-trade-signals-bot.onrender.com/ping")
+            requests.get("https://gbr-trade-signals-bot-gwks.onrender.com/ping")
         except:
             pass
         time.sleep(240)
 
+@app.route("/")
+def home():
+    return "Bot działa."
+
+@app.route("/ping")
+def ping():
+    return "pong"
+
+def run_bot():
+    updater = Updater(TOKEN, use_context=True)
+    dp = updater.dispatcher
+    dp.add_handler(CommandHandler("start", start))
+    updater.start_polling()
+
 if __name__ == "__main__":
     threading.Thread(target=monitor).start()
     threading.Thread(target=keep_alive).start()
+    threading.Thread(target=run_bot).start()
     app.run(host="0.0.0.0", port=10000)
