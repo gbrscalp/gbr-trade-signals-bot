@@ -56,7 +56,8 @@ def start(update: Update, context: CallbackContext):
     user_chat_ids.add(chat_id)
     context.bot.send_message(chat_id=chat_id, text='✅ Bot aktywowany.')
 Twój chat_id to: {chat_id}
-Otrzymasz sygnały RSI.")
+    context.bot.send_message(chat_id=chat_id, text='📩 Otrzymasz sygnały RSI.')
+
 
 def keep_alive():
     while True:
