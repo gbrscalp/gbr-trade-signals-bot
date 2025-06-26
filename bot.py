@@ -54,7 +54,7 @@ def monitor():
 def start(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     user_chat_ids.add(chat_id)
-    context.bot.send_message(chat_id=chat_id, text=f"✅ Bot aktywowany.
+   context.bot.send_message(chat_id=chat_id, text='✅ Bot aktywowany.')
 Twój chat_id to: {chat_id}
 Otrzymasz sygnały RSI.")
 
