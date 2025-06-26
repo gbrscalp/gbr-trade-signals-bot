@@ -48,7 +48,7 @@ def monitor():
                         try:
                             bot.send_message(chat_id=chat_id, text=msg)
                         except Exception as e:
-                            print(f"Error: {e}")
+                            print(f"Twój chat_id to: {chat_id}")
         time.sleep(300)
 
 def start(update: Update, context: CallbackContext):
