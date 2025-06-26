@@ -58,6 +58,10 @@ def start(update: Update, context: CallbackContext):
     print(f"Twój chat_id to: {chat_id}")
     context.bot.send_message(chat_id=chat_id, text='📩 Otrzymasz sygnały RSI.')
 
+@application.command("id")
+async def send_chat_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.effective_chat.id
+    await context.bot.send_message(chat_id=chat_id, text=f"🆔 Twój chat_id to: `{chat_id}`", parse_mode="Markdown")
 
 def keep_alive():
     while True:
